@@ -6,6 +6,8 @@ The steps, based on [Creating a Release](https://bosh.io/docs/create-release.htm
 
 For a complete reference about [BOSH](http://bosh.io/) terminology, please refer to the [Official BOSH Documentation](https://bosh.io/docs).
 
+---
+
 ### INDEX
 
 * [BOSH-Lite](#boshLite)
@@ -16,7 +18,9 @@ For a complete reference about [BOSH](http://bosh.io/) terminology, please refer
 * [Creating the Deployment Manifest](#manifest)
 * [Deploying and Executing the Smoke Tests](#deploy)
 
-###  <a id="boshLite"></a>BOSH-Lite
+---
+
+### <a id="boshLite"></a>BOSH-Lite
 
 The full (and official) set of instructions to install BOSH-Lite on Virtual Box can be found in the [bosh-deployment](https://github.com/cloudfoundry/bosh-deployment) repository.
 
@@ -111,7 +115,9 @@ case $1 in
 esac
 ```
 
-###  <a id="gettingStarted"></a>Getting Started
+---
+
+### <a id="gettingStarted"></a>Getting Started
 
 We have a BOSH-Lite environment installed on our local Virtual Box that we can use to play now, so it's time to get started. 
 
@@ -155,14 +161,16 @@ Putting it all together, we have three jobs and three packages:
 | Gradle | gradle | NONE | java
 | Apache Geode | geode | gradle, java | java
 
-###### Jobs
+##### Jobs
 | Job | Name | Runtime Dependencies
 | --- | --- | --- |
 | Locator | locator | java, geode
 | Server | server | java, geode
 | Smoke Tests | smoke-tests | java, geode
 
-###  <a id="packages"></a>Building the Packages
+---
+
+### <a id="packages"></a>Building the Packages
 
 A [package](https://bosh.io/docs/packages.html) is a component of a [BOSH](http://bosh.io/) release that contains a packaging spec file and a packaging script. Each package also references source code or pre-compiled software that you store in the src directory of a [BOSH](http://bosh.io/) release.
 
@@ -307,7 +315,9 @@ popd
 echo "Installing Apache Geode... Done!"
 ```
 
-###  <a id="jobs"></a>Implementing the Jobs
+---
+
+### <a id="jobs"></a>Implementing the Jobs
 
 A [job](https://bosh.io/docs/jobs.html) represents a specific chunk of work that the release performs. It typically includes metadata that specifies available configuration options, [ERB](https://apidock.com/ruby/ERB) configuration files, a [Monit](https://mmonit.com/) file that describes how to start, stop and monitor processes, start and stop scripts for each process and additional hook scripts.
 
@@ -852,7 +862,9 @@ verify_applications
 verify_configuration
 ```
 
-###  <a id="release"></a>Creating & Uploading the Release
+---
+
+### <a id="release"></a>Creating & Uploading the Release
 
 At this point all artifacts needed to create the dev release are in place, the folder structure of the release directory should be as follows:
 
@@ -919,7 +931,9 @@ $ bosh -n -e bosh-lite upload-release
 
 That's all, our release is uploaded to the BOSH Director and, from now on, we can reference it from a deployment manifest to start deploying stuff!.
 
-###  <a id="manifest"></a>Creating the Deployment Manifest
+---
+
+### <a id="manifest"></a>Creating the Deployment Manifest
 
 The deployment manifest is a [YAML](http://yaml.org/) file that defines the components and properties of the [BOSH](http://bosh.io/) deployment. When an operator initiates a new deployment using the CLI, the Director receives a manifest and creates or updates a deployment with matching name.
 
@@ -989,7 +1003,9 @@ instance_groups:
       locator: { from: locator }
 ```
 
-###  <a id="deploy"></a>Deploying and Executing the Smoke Tests
+---
+
+### <a id="deploy"></a>Deploying and Executing the Smoke Tests
 
 We have the deployment manifest finished, the specified jobs have been uploaded as part of the release, and the rest of the referenced components (networks, stemcells, vm types, availability zones, etc.) have been previously uploaded within the cloud-config in the first step, so now we're officialy ready to create the deployment through the BOSH CLI [deploy](https://bosh.io/docs/cli-v2#deploy) command. We also want to run the smoke-tests after the deploy finishes, and that can be achieved by running the BOSH CLI [run-errand](https://bosh.io/docs/cli-v2#run-errand) command.
 
