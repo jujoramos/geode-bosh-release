@@ -1106,5 +1106,3 @@ until [ "$selection" = "6" ]; do
 done
 
 ```
-
-Hope this was useful.
