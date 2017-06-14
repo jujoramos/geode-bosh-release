@@ -1,0 +1,16 @@
+# abort script on any command that exits with a non zero value
+set -e -x
+echo "Installing Apache Geode..."
+
+export JAVA_HOME=/var/vcap/packages/java
+export PATH=$PATH:$JAVA_HOME/bin:/var/vcap/packages/gradle/bin
+tar xzf geode/apache-geode-src-1.1.1.tar.gz
+pushd apache-geode-src-1.1.1
+	./gradlew build -Dskip.tests=true
+	cp -a geode-assembly/build/install/apache-geode/* ${BOSH_INSTALL_TARGET}
+popd
+
+#unzip geode/apache-geode-1.1.1.zip
+#cp -a apache-geode-1.1.1/* ${BOSH_INSTALL_TARGET}
+
+echo "Installing Apache Geode... Done!"

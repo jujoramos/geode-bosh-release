@@ -1,0 +1,5 @@
+check process locator
+  with pidfile /var/vcap/store/locator/vf.gf.locator.pid
+  start program "/var/vcap/jobs/locator/bin/ctl start"
+  stop program "/var/vcap/jobs/locator/bin/ctl stop"
+  group vcap

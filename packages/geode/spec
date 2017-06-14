@@ -1,0 +1,9 @@
+---
+name: geode
+
+dependencies:
+- java
+- gradle
+
+files:
+- geode/apache-geode-src-1.1.1.tar.gz #http://ftp.heanet.ie/mirrors/www.apache.org/dist/geode/1.1.1/apache-geode-src-1.1.1.tar.gz

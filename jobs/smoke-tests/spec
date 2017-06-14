@@ -1,0 +1,17 @@
+---
+name: smoke-tests
+
+templates:
+  errands.erb: bin/run
+
+packages:
+- java
+- geode
+
+consumes:
+- name: locator
+  type: locator
+- name: server
+  type: server
+
+properties: {}

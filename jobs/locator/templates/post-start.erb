@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+export JAVA_HOME=/var/vcap/packages/java
+export GEODE_HOME=/var/vcap/packages/geode
+export PATH=$PATH:$JAVA_HOME/bin:$GEODE_HOME/bin
+
+RETRIES=10
+SLEEP_TIME=5
+LOCATOR_NAME=locator_<%= "#{spec.id}" %>
+LOCATOR_BIND_ADDRESS=<%= "#{spec.address}" %>
+LOCATOR_CONNECTION_STRING=$LOCATOR_BIND_ADDRESS[<%= p('locator.port') %>]
+PULSE_WEB_APP_CONNECTION_STRING=http://$LOCATOR_BIND_ADDRESS:<%= p('http.port') %>/pulse/login.html
+
+echo [`date '+%F %T'`]: "Verifying locator $LOCATOR_CONNECTION_STRING..."
+
+for i in $(seq 1 "$RETRIES"); do
+
+    if gfsh -e "connect --locator=$LOCATOR_CONNECTION_STRING"; then
+      sleep "$SLEEP_TIME"
+      PULSE_STATUS=$(curl -s --head -w %{http_code} $PULSE_WEB_APP_CONNECTION_STRING -o /dev/null)
+
+      if [[ $PULSE_STATUS == 200 ]]; then
+        echo [`date '+%F %T'`]: "Verifying locator $LOCATOR_CONNECTION_STRING... Done!."
+        exit 0
+      else
+        echo [`date '+%F %T'`]: "Verifying locator $LOCATOR_CONNECTION_STRING... Failure (Pulse)."
+        exit 1
+      fi
+    else
+      sleep "$SLEEP_TIME"
+    fi
+done
+
+echo [`date '+%F %T'`]: "Verifying locator $LOCATOR_CONNECTION_STRING... Failure (Locator)."
+exit 1

@@ -1,0 +1,5 @@
+# abort script on any command that exit with a non zero value
+set -e -x
+echo "Installing Java..."
+tar xzf java/jdk-8u131-linux-x64.tar.gz -C ${BOSH_INSTALL_TARGET} --strip-components=1
+echo "Installing Java... Done!"

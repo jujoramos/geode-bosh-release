@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+export JAVA_HOME=/var/vcap/packages/java
+export GEODE_HOME=/var/vcap/packages/geode
+export PATH=$PATH:$JAVA_HOME/bin:$GEODE_HOME/bin
+
+SERVER_NAME=server_<%= "#{spec.id}" %>
+SERVER_BIND_ADDRESS=<%= "#{spec.address}" %>
+REST_API_CONNECTION_STRING=http://$SERVER_BIND_ADDRESS:<%= p('http.port') %>/geode/swagger-ui.html
+LOCATORS=<%= link('locator').instances.map { |l| "#{l.address}[#{link('locator').p('locator.port')}]"}.join("\\ ") %>
+
+echo [`date '+%F %T'`]: "Verifying server $SERVER_NAME..."
+
+for locator in $LOCATORS; do
+	gfsh -e "connect --locator=$locator" -e "list members" | grep -q $SERVER_NAME
+	if [ $? != 0 ]; then
+   		echo [`date '+%F %T'`]: "Verifying server $SERVER_NAME... Failure!. Locator $locator doesn't see the server as part of the cluster."
+   		exit 1
+	fi
+done
+
+REST_API_STATUS=$(curl -s --head -w %{http_code} $REST_API_CONNECTION_STRING -o /dev/null)
+if [[ $REST_API_STATUS != 200 ]]; then
+	echo [`date '+%F %T'`]: "Verifying locator $LOCATOR_CONNECTION_STRING... Failure! (REST API)."
+	exit 1
+fi
+
+echo [`date '+%F %T'`]: "Verifying server $SERVER_NAME... Done!"
+exit 0

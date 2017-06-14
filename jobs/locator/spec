@@ -1,0 +1,36 @@
+---
+name: locator
+
+templates:
+  ctl.erb: bin/ctl
+  post-start.erb: bin/post-start
+  locator.properties.erb: config/locator.properties
+
+packages:
+- java
+- geode
+
+consumes:
+- name: locator
+  type: locator
+
+provides:
+- name: locator
+  type: locator
+  properties:
+  - http.port
+  - locator.port
+
+properties:
+  jmx.port:
+    description: The port at which the JMX Manager will listen to for client connections.
+    default: 1099
+  http.port:
+    description: Port at which the embedded HTTP service listens on.
+    default: 7070
+  locator.port:
+    description: Port the locator will listen on.
+    default: 10334
+  log.level:
+    description: Log level that will be used by the locator.
+    default: config

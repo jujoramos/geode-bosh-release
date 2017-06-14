@@ -1,0 +1,5 @@
+check process server
+  with pidfile /var/vcap/store/server/vf.gf.server.pid
+  start program "/var/vcap/jobs/server/bin/ctl start"
+  stop program "/var/vcap/jobs/server/bin/ctl stop"
+  group vcap

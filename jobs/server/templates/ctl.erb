@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e -x
+
+WORK_DIR=/var/vcap/store/server
+LOG_DIR=/var/vcap/sys/log/server
+CONF_DIR=/var/vcap/jobs/server/config
+SERVER_NAME=server_<%= "#{spec.id}" %>
+SERVER_BIND_ADDRESS=<%= "#{spec.address}" %>
+HEAP_OPTIONS="--J=-Xmn<%= p('newGen.size') %>m --J=-Xmx<%= p('oldGen.size') %>m --J=-Xms<%= p('oldGen.size') %>m --J=-XX:+AlwaysPreTouch"
+JAVA_GC_OPTS="--J=-XX:+UseParNewGC --J=-XX:+UseConcMarkSweepGC --J=-XX:CMSInitiatingOccupancyFraction=70 --J=-XX:+UseCMSInitiatingOccupancyOnly --J=-XX:+DisableExplicitGC --J=-XX:+CMSClassUnloadingEnabled"
+JAVA_GC_PRINT_OPTS="--J=-verbose:gc --J=-Xloggc:$SERVER_NAME-gc.log --J=-XX:+PrintGCDateStamps --J=-XX:+PrintGCDetails --J=-XX:+PrintTenuringDistribution --J=-XX:+PrintGCApplicationConcurrentTime --J=-XX:+PrintGCApplicationStoppedTime"
+
+export JAVA_HOME=/var/vcap/packages/java
+export GEODE_HOME=/var/vcap/packages/geode
+export PATH=$PATH:$JAVA_HOME/bin:$GEODE_HOME/bin
+
+mkdir -p $LOG_DIR $WORK_DIR
+touch $LOG_DIR/ctl.std{out,err}.log
+touch $LOG_DIR/post-start.std{out,err}.log
+chown -R vcap:vcap $LOG_DIR $WORK_DIR
+
+exec > >(tee --append "$LOG_DIR"/ctl.stdout.log )
+exec 2> >(tee --append "$LOG_DIR"/ctl.stderr.log)
+
+case $1 in
+
+  start)
+    echo [`date '+%F %T'`]: "Starting server $SERVER_NAME[<%= p('server.port') %>]..."
+
+    gfsh start server \
+      --force=true \
+      --use-cluster-configuration=true \
+      --log-level=<%= p('log.level') %> \
+      --dir=$WORK_DIR --name=$SERVER_NAME \
+      --properties-file=$CONF_DIR/server.properties --cache-xml-file=$CONF_DIR/cache.xml \
+      --server-port=<%= p('server.port') %> --server-bind-address=$SERVER_BIND_ADDRESS --mcast-port=0 \
+      --start-rest-api=true --http-service-port=<%= p('http.port') %> --http-service-bind-address=$SERVER_BIND_ADDRESS \
+      --locators=<%= link('locator').instances.map { |l| "#{l.address}[#{link('locator').p('locator.port')}]"}.join(",") %> \
+      --J=-Dgemfire.statistic-sample-rate=1000 --J=-Dgemfire.statistic-sampling-enabled=true --J=-Dgemfire.statistic-archive-file=$WORK_DIR/$SERVER_NAME.gfs $HEAP_OPTIONS $JAVA_GC_OPTS $JAVA_GC_PRINT_OPTS
+
+    echo [`date '+%F %T'`]: "Starting server $SERVER_NAME[<%= p('server.port') %>]... Done!"
+    ;;
+
+  stop)
+    echo [`date '+%F %T'`]: "Stopping server $SERVER_NAME[<%= p('server.port') %>]..."
+    gfsh stop server --dir=$WORK_DIR
+    echo [`date '+%F %T'`]: "Stopping server $SERVER_NAME[<%= p('server.port') %>]... Done!"
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+esac

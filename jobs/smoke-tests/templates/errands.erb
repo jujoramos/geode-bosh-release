@@ -1,0 +1,66 @@
+#!/bin/bash
+set -e
+
+export JAVA_HOME=/var/vcap/packages/java
+export GEODE_HOME=/var/vcap/packages/geode
+export PATH=$PATH:$JAVA_HOME/bin:$GEODE_HOME/bin
+
+verify_membership() {
+  LOCATORS=<%= link('locator').instances.map { |l| "#{l.address}[#{link('locator').p('locator.port')}]"}.join("\\ ") %>
+  SERVERS_AMOUNT="<%= link('server').instances.size %>"
+  LOCATORS_AMOUNT="<%= link('locator').instances.size %>"
+
+  echo [`date '+%F %T'`]: "Verifying cluster membership..."
+
+  for locator in $LOCATORS; do
+    cluster_servers=$(gfsh -e "connect --locator=$locator" -e "list members" | grep "^server_"  | wc -l)
+    cluster_locators=$(gfsh -e "connect --locator=$locator" -e "list members" | grep "^locator_"  | wc -l)
+
+    if [[ "$cluster_servers" -ne "$SERVERS_AMOUNT" ]]; then
+        echo [`date '+%F %T'`]: "Verifying cluster membership... Failure!. Locator $locator doesn't report the expected amount of servers."
+        exit 1
+    fi
+
+    if [[ "$cluster_locators" -ne "$LOCATORS_AMOUNT" ]]; then
+        echo [`date '+%F %T'`]: "Verifying cluster membership... Failure!. Locator $locator doesn't report the expected amount of locators."
+        exit 1
+    fi
+  done
+
+  echo [`date '+%F %T'`]: "Verifying cluster membership... Done!."
+}
+
+verify_applications() {
+  PULSE_ENDPOINTS=<%= link('locator').instances.map { |l| "#{l.address}:#{link('locator').p('http.port')}"}.join("\\ ") %>
+  REST_API_ENDPOINTS=<%= link('server').instances.map { |s| "#{s.address}:#{link('server').p('http.port')}"}.join("\\ ") %>
+
+  echo [`date '+%F %T'`]: "Verifying cluster applications..."
+
+  for pulseEndpoint in $PULSE_ENDPOINTS; do
+    PULSE_STATUS=$(curl -s --head -w %{http_code} http://$pulseEndpoint/pulse/login.html -o /dev/null)
+
+    if [[ $PULSE_STATUS != 200 ]]; then
+      echo [`date '+%F %T'`]: "Verifying cluster applications... Failure!. Pulse can't be located on $pulseEndpoint."
+      exit 1
+    fi
+  done
+
+  for restEndpoint in $REST_API_ENDPOINTS; do
+    REST_API_STATUS=$(curl -s --head -w %{http_code} http://$restEndpoint/geode/swagger-ui.html -o /dev/null)
+
+    if [[ $REST_API_STATUS != 200 ]]; then
+      echo [`date '+%F %T'`]: "Verifying cluster applications... Failure!. The REST API can't be located on $restEndpoint."
+      exit 1
+    fi
+  done
+
+  echo [`date '+%F %T'`]: "Verifying cluster applications... Done!."
+}
+
+verify_configuration() {
+  echo "Nothing to do here yet..."
+}
+
+verify_membership
+verify_applications
+verify_configuration

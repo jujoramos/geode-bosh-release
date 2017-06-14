@@ -1,0 +1,40 @@
+---
+name: server
+
+templates:
+  ctl.erb: bin/ctl
+  post-start.erb: bin/post-start
+  cache.xml.erb: config/cache.xml
+  server.properties.erb: config/server.properties
+
+packages:
+- java
+- geode
+
+consumes:
+- name: locator
+  type: locator
+
+provides:
+- name: server
+  type: server
+  properties:
+  - http.port
+  - server.port
+
+properties:
+  http.port:
+    description: Port at which the embedded HTTP service listens on.
+    default: 7070
+  server.port:
+    description: Port the server will listen on.
+    default: 40404
+  log.level:
+    description: Log level that will be used by the server.
+    default: config
+  newGen.size:
+    description: Heap memory that will be assigned to the young generation space (megabyte).
+    default: 128
+  oldGen.size:
+    description: Heap memory that will be assigned to the old generation space (megabyte).
+    default: 1024

@@ -1,0 +1,9 @@
+geode/apache-geode-src-1.1.1.tar.gz:
+  size: 34271488
+  sha: 4d193c8c180c9add839689386b0914120716f52d
+gradle/gradle-3.5-bin.zip:
+  size: 73331577
+  sha: b29ccc5be25f0446183edc4f144673934bd7bb7e
+java/jdk-8u131-linux-x64.tar.gz:
+  size: 185540433
+  sha: c2a5582c049beb5c7af6b87a469bc53b759b7b87

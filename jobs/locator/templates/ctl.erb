@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e -x
+
+WORK_DIR=/var/vcap/store/locator
+LOG_DIR=/var/vcap/sys/log/locator
+CONF_DIR=/var/vcap/jobs/locator/config
+LOCATOR_NAME=locator_<%= "#{spec.id}" %>
+LOCATOR_BIND_ADDRESS=<%= "#{spec.address}" %>
+
+export JAVA_HOME=/var/vcap/packages/java
+export GEODE_HOME=/var/vcap/packages/geode
+export PATH=$PATH:$JAVA_HOME/bin:$GEODE_HOME/bin
+
+mkdir -p $LOG_DIR $WORK_DIR
+touch $LOG_DIR/ctl.std{out,err}.log
+touch $LOG_DIR/post-start.std{out,err}.log
+chown -R vcap:vcap $LOG_DIR $WORK_DIR
+
+exec > >(tee --append "$LOG_DIR"/ctl.stdout.log )
+exec 2> >(tee --append "$LOG_DIR"/ctl.stderr.log)
+
+case $1 in
+
+  start)
+    echo [`date '+%F %T'`]: "Starting locator $LOCATOR_NAME[<%= p('locator.port') %>]..."
+
+    gfsh start locator \
+      --force=true --connect=false \
+      --log-level=<%= p('log.level') %> \
+      --enable-cluster-configuration=true \
+      --initial-heap=256m --max-heap=256m \
+      --dir=$WORK_DIR --name=$LOCATOR_NAME \
+      --properties-file=$CONF_DIR/locator.properties \
+      --port=<%= p('locator.port') %> --bind-address=$LOCATOR_BIND_ADDRESS --mcast-port=0 \
+      --locators=<%= link('locator').instances.map { |l| "#{l.address}[#{p('locator.port')}]"}.join(",") %> \
+      --J=-Dgemfire.http-service-port=<%= p('http.port') %> --J=-Dgemfire.http-service-bind-address=$LOCATOR_BIND_ADDRESS \
+      --J=-Dgemfire.jmx-manager=true --J=-Dgemfire.jmx-manager-start=true --J=-Dgemfire.jmx-manager-port=<%= p('jmx.port') %> --J=-Djava.rmi.server.hostname=$LOCATOR_BIND_ADDRESS
+
+    echo [`date '+%F %T'`]: "Starting locator $LOCATOR_NAME[<%= p('locator.port') %>]... Done!"
+    ;;
+
+  stop)
+    echo [`date '+%F %T'`]: "Stopping locator $LOCATOR_NAME[<%= p('locator.port') %>]..."
+    gfsh stop locator --dir=$WORK_DIR
+    echo [`date '+%F %T'`]: "Stopping locator $LOCATOR_NAME[<%= p('locator.port') %>]... Done!"
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+esac

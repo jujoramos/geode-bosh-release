@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cache
+    xmlns="http://geode.apache.org/schema/cache"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://geode.apache.org/schema/cache http://geode.apache.org/schema/cache/cache-1.0.xsd"
+    version="1.0">
+
+	<cache-server/>
+
+	<disk-store name="diskStore"/>
+
+	<pdx persistent="true">
+		<pdx-serializer>
+			<class-name>org.apache.geode.pdx.ReflectionBasedAutoSerializer</class-name>
+			<parameter name="classes">
+				<string>com.company.model.*</string>
+			</parameter>
+		</pdx-serializer>
+	</pdx>
+
+	<region name="replicatedRegion">
+		<region-attributes refid="REPLICATE_PERSISTENT" statistics-enabled="true" disk-store-name="diskStore"/>
+	</region>
+
+	<region name="partitionedRegion">
+		<region-attributes refid="PARTITION_REDUNDANT_PERSISTENT" statistics-enabled="true" disk-store-name="diskStore">
+			<partition-attributes redundant-copies="2"/>
+		</region-attributes>
+	</region>
+</cache>
