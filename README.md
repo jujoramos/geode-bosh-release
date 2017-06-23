@@ -47,6 +47,22 @@ WORKSPACE_DIRECTORY=/workspace
 sudo route add -net 10.244.0.0/16 192.168.50.6
 BOSH_DEPLOYMENT_ROOT_DIRECTORY=$WORKSPACE_DIRECTORY/git/bosh-deployment
 
+# Delete Environment
+bosh delete-env \
+  $BOSH_DEPLOYMENT_ROOT_DIRECTORY/bosh.yml \
+  -o $BOSH_DEPLOYMENT_ROOT_DIRECTORY/virtualbox/cpi.yml \
+  -o $BOSH_DEPLOYMENT_ROOT_DIRECTORY/virtualbox/outbound-network.yml \
+  -o $BOSH_DEPLOYMENT_ROOT_DIRECTORY/bosh-lite.yml \
+  -o $BOSH_DEPLOYMENT_ROOT_DIRECTORY/bosh-lite-runc.yml \
+  -o $BOSH_DEPLOYMENT_ROOT_DIRECTORY/jumpbox-user.yml \
+  --state $WORKSPACE_DIRECTORY/config/state.json \
+  --vars-store $WORKSPACE_DIRECTORY/config/creds.yml \
+  -v internal_ip=192.168.50.6 \
+  -v internal_gw=192.168.50.1 \
+  -v internal_cidr=192.168.50.0/24 \
+  -v outbound_network_name=NatNetwork \
+  -v director_name="Bosh Lite Director"
+
 # Clean Previous Settings
 rm -Rf ~/.bosh
 rm -Rf ~/VirtualBox\ VMs/
